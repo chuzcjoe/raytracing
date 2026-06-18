@@ -4,18 +4,25 @@
 #include "Ray.h"
 #include "Vec3.h"
 
-bool HitSphere(const Point3& center, double radius, const Ray& r) {
+double HitSphere(const Point3& center, double radius, const Ray& r) {
   Vec3 oc = center - r.origin();
   auto a = dot(r.direction(), r.direction());
   auto b = -2.0 * dot(r.direction(), oc);
   auto c = dot(oc, oc) - radius * radius;
   auto discriminant = b * b - 4 * a * c;
-  return (discriminant >= 0);
+
+  if (discriminant < 0) {
+    return -1.0;
+  } else {
+    return (-b - std::sqrt(discriminant)) / (2.0 * a);
+  }
 }
 
 Color RayColor(const Ray& r) {
-  if (HitSphere(Point3(0, 0, -1), 0.5, r)) {
-    return Color(1, 0, 0);
+  auto t = HitSphere(Point3(0, 0, -1), 0.5, r);
+  if (t > 0.0) {
+    Vec3 N = unit_vector(r.at(t) - Vec3(0, 0, -1));
+    return 0.5 * Color(N.x() + 1, N.y() + 1, N.z() + 1);
   }
 
   Vec3 unit_direction = unit_vector(r.direction());
