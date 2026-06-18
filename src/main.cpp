@@ -1,28 +1,18 @@
 #include <iostream>
+#include <memory>
 
 #include "Color.h"
+#include "Constants.h"
+#include "HitBase.h"
+#include "HitList.h"
+#include "HitSphere.h"
 #include "Ray.h"
 #include "Vec3.h"
 
-double HitSphere(const Point3& center, double radius, const Ray& r) {
-  Vec3 oc = center - r.origin();
-  auto a = r.direction().length_squared();
-  auto h = dot(r.direction(), oc);
-  auto c = oc.length_squared() - radius * radius;
-  auto discriminant = h * h - a * c;
-
-  if (discriminant < 0) {
-    return -1.0;
-  } else {
-    return (h - std::sqrt(discriminant)) / a;
-  }
-}
-
-Color RayColor(const Ray& r) {
-  auto t = HitSphere(Point3(0, 0, -1), 0.5, r);
-  if (t > 0.0) {
-    Vec3 N = unit_vector(r.at(t) - Vec3(0, 0, -1));
-    return 0.5 * Color(N.x() + 1, N.y() + 1, N.z() + 1);
+Color RayColor(const Ray& r, const HitBase& world) {
+  HitRecord rec;
+  if (world.Hit(r, 0, infinity, rec)) {
+    return 0.5 * (rec.normal + Color(1, 1, 1));
   }
 
   Vec3 unit_direction = unit_vector(r.direction());
@@ -33,11 +23,16 @@ Color RayColor(const Ray& r) {
 int main() {
   // Image
   auto aspect_ratio = 16.0 / 9.0;
-  int image_width = 400;
+  int image_width = 1000;
 
   // Calculate the image height, and ensure that it's at least 1.
   int image_height = int(image_width / aspect_ratio);
   image_height = (image_height < 1) ? 1 : image_height;
+
+  // World
+  HitList world;
+  world.Add(std::make_shared<HitSphere>(Point3(0, 0, -1), 0.5));
+  world.Add(std::make_shared<HitSphere>(Point3(0, -100.5, -1), 100));
 
   // Camera
   auto focal_length = 1.0;
@@ -65,7 +60,7 @@ int main() {
       auto pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
       auto ray_direction = pixel_center - camera_center;
       Ray r(camera_center, ray_direction);
-      Color pixel_color = RayColor(r);
+      Color pixel_color = RayColor(r, world);
 
       WriteColor(std::cout, pixel_color);
     }
