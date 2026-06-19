@@ -6,7 +6,7 @@ class HitSphere : public HitBase {
  public:
   HitSphere(const Point3& center, double radius);
 
-  bool Hit(const Ray& r, double ray_tmin, double ray_tmax, HitRecord& rec) const override;
+  bool Hit(const Ray& r, Interval ray_t, HitRecord& rec) const override;
 
  private:
   Point3 center_;

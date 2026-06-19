@@ -6,12 +6,13 @@
 #include "HitBase.h"
 #include "HitList.h"
 #include "HitSphere.h"
+#include "Interval.h"
 #include "Ray.h"
 #include "Vec3.h"
 
 Color RayColor(const Ray& r, const HitBase& world) {
   HitRecord rec;
-  if (world.Hit(r, 0, infinity, rec)) {
+  if (world.Hit(r, Interval(0, infinity), rec)) {
     return 0.5 * (rec.normal + Color(1, 1, 1));
   }
 

@@ -16,5 +16,5 @@ class HitList : public HitBase {
 
   void Add(std::shared_ptr<HitBase> object) { hit_objects.push_back(object); }
 
-  bool Hit(const Ray& r, double ray_tmin, double ray_tmax, HitRecord& rec) const override;
+  bool Hit(const Ray& r, Interval ray_t, HitRecord& rec) const override;
 };
