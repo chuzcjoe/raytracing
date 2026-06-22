@@ -7,9 +7,13 @@ void Camera::Render(const HitBase& world) {
 
   for (int j = 0; j < image_height_; j++) {
     for (int i = 0; i < image_width; i++) {
-      auto pixel_center = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
-      Ray r(center_, pixel_center - center_);
-      WriteColor(std::cout, RayColor(r, world));
+      Color pixel_color(0, 0, 0);
+      for (int sample = 0; sample < samples_per_pixel; ++sample) {
+        Ray r = GetRay(i, j);
+        pixel_color += RayColor(r, world);
+      }
+
+      WriteColor(std::cout, pixel_samples_scale_ * pixel_color);
     }
   }
 }
@@ -17,6 +21,7 @@ void Camera::Render(const HitBase& world) {
 void Camera::Initialize() {
   image_height_ = int(image_width / aspect_ratio);
   image_height_ = (image_height_ < 1) ? 1 : image_height_;
+  pixel_samples_scale_ = 1.0 / samples_per_pixel;
 
   center_ = Point3(0, 0, 0);
 
@@ -36,6 +41,20 @@ void Camera::Initialize() {
   // Calculate the location of the upper left pixel.
   auto viewport_upper_left = center_ - Vec3(0, 0, focal_length) - viewport_u / 2 - viewport_v / 2;
   pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+}
+
+Ray Camera::GetRay(int i, int j) const {
+  // Construct a camera ray originating from the origin and directed at randomly sampled
+  // point around the pixel location i, j.
+
+  auto offset = SampleSquare();
+  auto pixel_sample =
+      pixel00_loc + ((i + offset.x()) * pixel_delta_u) + ((j + offset.y()) * pixel_delta_v);
+
+  auto ray_origin = center_;
+  auto ray_direction = pixel_sample - ray_origin;
+
+  return Ray(ray_origin, ray_direction);
 }
 
 Color Camera::RayColor(const Ray& r, const HitBase& world) const {
