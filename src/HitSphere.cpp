@@ -1,7 +1,9 @@
 #include "HitSphere.h"
 
-HitSphere::HitSphere(const Point3& center, double radius)
-    : center_(center), radius_(std::fmax(0, radius)) {}
+HitSphere::HitSphere(const Point3& center, const double radius, std::shared_ptr<Material> material)
+    : center_(center), radius_(std::fmax(0, radius)), material_(material) {
+    // init material
+  }
 
 bool HitSphere::Hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
   Vec3 oc = center_ - r.origin();
@@ -27,7 +29,7 @@ bool HitSphere::Hit(const Ray& r, Interval ray_t, HitRecord& rec) const {
   rec.p = r.at(rec.t);
   Vec3 outward_normal = (rec.p - center_) / radius_;
   rec.SetFaceNormal(r, outward_normal);
-  rec.normal = (rec.p - center_) / radius_;
+  rec.material = material_;
 
   return true;
 }

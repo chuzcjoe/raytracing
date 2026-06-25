@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+
+re='\.((c|cc|cpp|cxx|h|hh|hpp|hxx))$'
+BUILD_DIR="build"
+
+files=$(git diff --cached --name-only --diff-filter=ACMR | grep -E "$re" || true)
+[ -z "$files" ] && exit 0
+
+echo "clang-format: formatting staged files..."
+for f in $files; do
+  [ -f "$f" ] || continue
+  clang-format -i "$f"
+  git add "$f"
+done
+
+echo "clang-tidy: checking staged files..."
+failed=0
+
+for f in $files; do
+  [ -f "$f" ] || continue
+
+  echo "Checking $f"
+  if ! clang-tidy "$f" -p "$BUILD_DIR"; then
+    failed=1
+  fi
+done
+
+if [ "$failed" -ne 0 ]; then
+  echo "clang-tidy failed."
+  exit 1
+fi
+
+echo "All checks passed."

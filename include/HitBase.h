@@ -3,12 +3,15 @@
 #include "Interval.h"
 #include "Ray.h"
 
+class Material;
+
 class HitRecord {
  public:
   Point3 p;
   Vec3 normal;
   double t;
   bool front_face;
+  std::shared_ptr<Material> material;
 
   void SetFaceNormal(const Ray& r, const Vec3& outward_normal) {
     // Sets the hit record normal vector.

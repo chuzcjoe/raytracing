@@ -6,8 +6,9 @@
 class Camera {
  public:
   double aspect_ratio = 1.0;   // Ratio of image width over height
-  int image_width = 100;       // Rendered image width in pixel count
+  int image_width = 300;       // Rendered image width in pixel count
   int samples_per_pixel = 10;  // Count of random samples for each pixel
+  int max_depth = 10;   // Maximum number of ray bounces into scene
 
   void Render(const HitBase& world);
 
@@ -28,5 +29,5 @@ class Camera {
     return Vec3(random_double() - 0.5, random_double() - 0.5, 0);
   }
 
-  Color RayColor(const Ray& r, const HitBase& world) const;
+  Color RayColor(const Ray& r, const int depth,const HitBase& world) const;
 };

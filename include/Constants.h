@@ -18,3 +18,11 @@ inline double random_double(double min, double max) {
   // Returns a random real in [min,max).
   return min + (max - min) * random_double();
 }
+
+inline double linear_to_gamma(double linear_component){
+    if (linear_component > 0)
+        return std::sqrt(linear_component);
+
+    return 0;
+}
+

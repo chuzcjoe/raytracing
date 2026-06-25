@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include "Material.h"
 
 void Camera::Render(const HitBase& world) {
   Initialize();
@@ -10,7 +11,7 @@ void Camera::Render(const HitBase& world) {
       Color pixel_color(0, 0, 0);
       for (int sample = 0; sample < samples_per_pixel; ++sample) {
         Ray r = GetRay(i, j);
-        pixel_color += RayColor(r, world);
+        pixel_color += RayColor(r, max_depth, world);
       }
 
       WriteColor(std::cout, pixel_samples_scale_ * pixel_color);
@@ -57,10 +58,17 @@ Ray Camera::GetRay(int i, int j) const {
   return Ray(ray_origin, ray_direction);
 }
 
-Color Camera::RayColor(const Ray& r, const HitBase& world) const {
+Color Camera::RayColor(const Ray& r, const int depth, const HitBase& world) const {
+  if (depth <= 0) return Color(0, 0, 0);
+
   HitRecord rec;
-  if (world.Hit(r, Interval(0, infinity), rec)) {
-    return 0.5 * (rec.normal + Color(1, 1, 1));
+  // use a small t_min value to avoid self-intersection with the surface.
+  if (world.Hit(r, Interval(0.001, infinity), rec)) {
+    Ray scattered;
+    Color attenuation;
+    if (rec.material->Scatter(r, rec, attenuation, scattered))
+        return attenuation * RayColor(scattered, depth - 1, world);
+    return Color(0,0,0);
   }
 
   Vec3 unit_direction = unit_vector(r.direction());
