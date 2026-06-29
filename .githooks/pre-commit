@@ -10,6 +10,25 @@ BUILD_DIR="build"
 files=$(git diff --cached --name-only --diff-filter=ACMR | grep -E "$re" || true)
 [ -z "$files" ] && exit 0
 
+if ! command -v clang-tidy >/dev/null 2>&1; then
+  for llvm_bin in /opt/homebrew/opt/llvm/bin /usr/local/opt/llvm/bin; do
+    if [ -x "$llvm_bin/clang-tidy" ]; then
+      export PATH="$llvm_bin:$PATH"
+      break
+    fi
+  done
+fi
+
+if ! command -v clang-tidy >/dev/null 2>&1; then
+  echo "clang-tidy not found. Install LLVM or add clang-tidy to PATH."
+  exit 1
+fi
+
+if [ ! -f "$BUILD_DIR/compile_commands.json" ]; then
+  echo "cmake: generating compilation database..."
+  cmake -S . -B "$BUILD_DIR"
+fi
+
 echo "clang-format: formatting staged files..."
 for f in $files; do
   [ -f "$f" ] || continue
@@ -24,7 +43,7 @@ for f in $files; do
   [ -f "$f" ] || continue
 
   echo "Checking $f"
-  if ! clang-tidy "$f" -p "$BUILD_DIR"; then
+  if ! clang-tidy --quiet "$f" -p "$BUILD_DIR"; then
     failed=1
   fi
 done

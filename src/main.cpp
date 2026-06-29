@@ -12,7 +12,7 @@ int main() {
 
   auto lambertian_ground = std::make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
   auto lambertian_center = std::make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
-  auto dielectric_left = std::make_shared<Dielectric>(1.50);
+  auto dielectric_left = std::make_shared<Dielectric>(1.00 / 1.33);
   auto metal_right = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.1);
 
   world.Add(std::make_shared<HitSphere>(Point3(0.0, -100.5, -1.0), 100.0, lambertian_ground));
